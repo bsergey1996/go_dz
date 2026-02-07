@@ -2,10 +2,22 @@ package main
 
 import "fmt"
 
-const USD_TO_EUR = 0.92
-const USD_TO_RUB = 90
-const EUR_TO_RUB = USD_TO_RUB / USD_TO_EUR
+const (
+	USDToEUR = 0.92
+	USDToRUB = 90.0
+	EURToRUB = USDToRUB / USDToEUR
+)
+
+func userInput() float64 {
+	var money float64
+	fmt.Scan(&money)
+	return money
+}
+
+func calculateMoney(money float64, currencyFrom string, currencyTo string) {
+}
 
 func main() {
-	fmt.Println(EUR_TO_RUB)
+	money := userInput()
+	calculateMoney(money, "USD", "RUB")
 }
