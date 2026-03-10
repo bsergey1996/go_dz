@@ -2,26 +2,39 @@ package main
 
 import "fmt"
 
-const (
-	USDToEUR = 0.84 // 1 USD ≈ 0.84 EUR
-	USDToRUB = 77.0 // 1 USD ≈ 77 RUB
-	EURToRUB = USDToRUB / USDToEUR
-)
+// Вместо отдельных констант создаем единый источник истины — map.
+// Базовой валютой делаем USD (ее курс равен 1.0).
+var exchangeRates = map[string]float64{
+	"USD":  1.0,
+	"EUR":  0.84,
+	"RUB":  77.0,
+	"USDT": 0.9,
+}
+
+func outputCurrency() {
+	fmt.Print("Доступные валюты: ")
+	for currency := range exchangeRates {
+		fmt.Printf("%s ", currency)
+	}
+	fmt.Println() // Перенос строки после списка
+}
 
 func inputCurrency(promt string) string {
 	for {
 		fmt.Println(promt)
-		fmt.Println("Доступные валюты: USD, EUR, RUB")
+
+		outputCurrency()
 
 		var currency string
 		fmt.Scan(&currency)
 
-		switch currency {
-		case "USD", "EUR", "RUB":
+		// Проверяем, есть ли введенная валюта в нашей map ключей.
+		// Заменяем громоздкий switch на изящную проверку.
+		if _, exists := exchangeRates[currency]; exists {
 			return currency
-		default:
-			fmt.Println("Неверная валюта попробуйте снова")
 		}
+
+		fmt.Println("Неверная валюта попробуйте снова")
 	}
 }
 
@@ -34,6 +47,9 @@ func inputAmount() float64 {
 
 		if err != nil {
 			fmt.Println("Ошибка ввода, попробуйте снова.")
+			// Очищаем буфер ввода, чтобы избежать зацикливания при вводе букв
+			var trash string
+			fmt.Scanln(&trash)
 			continue
 		}
 
@@ -46,6 +62,7 @@ func inputAmount() float64 {
 	}
 }
 
+// Функция сохранена по твоей просьбе, хоть сейчас она и не используется в main
 func userInput() float64 {
 	var money float64
 	fmt.Scan(&money)
@@ -57,28 +74,14 @@ func calculateMoney(money float64, from string, to string) float64 {
 		return money
 	}
 
-	if from == "USD" && to == "EUR" {
-		return money * USDToEUR
-	}
-	if from == "USD" && to == "RUB" {
-		return money * USDToRUB
-	}
+	// Достаем курсы валют из нашей map
+	rateFrom := exchangeRates[from]
+	rateTo := exchangeRates[to]
 
-	if from == "EUR" && to == "USD" {
-		return money / USDToEUR
-	}
-	if from == "EUR" && to == "RUB" {
-		return money * EURToRUB
-	}
-
-	if from == "RUB" && to == "USD" {
-		return money / USDToRUB
-	}
-	if from == "RUB" && to == "EUR" {
-		return money / EURToRUB
-	}
-
-	return 0
+	// Математика конвертации через базовую валюту (USD):
+	// 1. Делим сумму на курс исходной валюты (получаем эквивалент в USD)
+	// 2. Умножаем на курс целевой валюты
+	return (money / rateFrom) * rateTo
 }
 
 func main() {
